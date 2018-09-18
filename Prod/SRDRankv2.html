@@ -1,0 +1,229 @@
+<html>
+<head>
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<script src="https://d3js.org/topojson.v1.min.js"></script>
+<script src="versor.js"></script>
+<script src="brailleenc.js"></script>
+<style>
+body {
+    width: 100vw;
+    height: 100vh;
+    overflow:visible;
+}
+
+.value {
+	fill: black;
+}
+
+#type,#date,#group,#subgroup,#gender,#menu,#country,#region,#ateams,#cliques,#loadsave{
+    border: 1px solid lightgrey;
+    display: inline-block;
+}
+.inputs {
+    border: 1px solid lightgrey;
+}
+
+.x1{border-color: #1f77b4;}
+.x2{border-color: #aec7e8;}
+.x4{border-color: #ff7f0e;}
+.x8{border-color: #ffbb78;}
+.x10{border-color: #2ca02c;}
+.x20{border-color: #98df8a;}
+.x40{border-color: #d62728;}
+.x80{border-color: #ff9896;}
+.x100{border-color: #9467bd;}
+.x200{border-color: #c5b0d5;}
+.x400{border-color: #8c564b;}
+.x800{border-color: #c49c94;}
+.x1000{border-color: #e377c2;}
+.x2000{border-color: #f7b6d2;}
+.x4000{border-color: #7f7f7f;}
+.x8000{border-color: #c7c7c7;}
+.x10000{border-color: #bcbd22;}
+.x20000{border-color: #dbdb8d;}
+.x40000{border-color: #17becf;}
+.x80000{border-color: #9edae5;}
+
+.tooltip {
+display: inline-block;
+background-color: aliceblue;
+}
+
+.tooltip .tooltiptxt {
+    /* margin-left:9px; */
+    width : 320px;
+    visibility: hidden;
+    background-color: aliceblue;
+    border-radius:4px;
+    border: 1px solid steelblue;
+    position: fixed; /* absolute */
+    z-index: 1;
+    /* padding: 5px;
+    margin-top : 0em; */
+   opacity: 0;
+    transition: opacity 1s;
+    /* new */
+
+}
+
+.tooltip:hover .tooltiptxt {
+    visibility: visible;
+    opacity: 1;
+}
+
+#viewport {
+    overflow-y: auto;
+    overflow-x: visible;
+    height: 100vmin; /* vmin is the smaller of the two vh vw percentage units */
+    width: 100vmin;
+    position:fixed;
+    margin: 0;
+    border: 1px solid steelblue;
+}
+
+canvas {
+    position: fixed;
+    width=100vmin;
+    height=100vmin;
+    z-index:-1;
+}
+
+svg {
+    position:static;
+}
+
+svg#header,svg#header2 {
+    visibility:hidden;
+    position:fixed;
+    z-index:0;
+}
+
+#modetoggle {
+    position:absolute;
+    top:93vmin;
+    left:90vmin;
+    height: 3vmin;
+    width: 3vmin;
+    padding: 1px;
+    border: 1px solid steelblue;
+}
+
+#markertoggle {
+    position:fixed;
+    visibility: hidden;
+    top:93vmin;
+    left:3vmin;
+}
+
+#locatortoggle {
+    position: fixed;
+    visibility:hidden;
+    top: 3vmin;
+    left: 3vmin;
+    border: 1px solid steelblue;
+    background-color: aliceblue;
+}
+
+#locator {
+    position: fixed;
+    overflow-y: auto;
+    visibility:hidden;
+    top: 3vmin;
+    left: 6vmin;
+    height: 90vmin;
+    width: 10em;
+    border: 1px solid steelblue;
+}
+
+#locator2 {
+    position: fixed;
+    overflow-y: auto;
+    visibility:hidden;
+    top: 3vmin;
+    left: 20vmin;
+    height:50vmin;
+    width: 10em;
+    border: 1px solid steelblue;
+}
+
+.markersize {
+    height: 3vmin;
+    width: 3vmin;
+    border: 1px solid steelblue;
+    padding: 1px;
+}
+
+/* orientation dependant location for controls */
+@media all and (orientation: portrait) {
+    #controls {
+        position:fixed;
+        width: 100%;
+        top:102vmin;
+        padding:1px;
+        margin:0;
+        left:0;
+    }
+    .tooltip .tooltiptxt {
+        top:60vmin;
+        left:10vmin;
+    }
+}
+
+@media all and (orientation: landscape) {
+    #controls {
+        height: 100%;
+        position:fixed;
+        left:102vmin;
+        padding:1px;
+        margin: 0;
+        top:0;
+    }
+    .tooltip .tooltiptxt {
+        left:60vmin;
+        top:10vmin;
+    }
+}
+</style>
+</head>
+<body>
+    <div id="em-div" style="height:0;width:0;outline:none;border:none;padding:none;margin:none;"></div>
+<div id="viewport">
+<canvas></canvas>
+<svg width="100vmin" height="100vmin"></svg>
+<svg id="header" height="2.3em">
+<rect fill="ivory" class="barcontent" opacity="1" stroke="#444" height="2em" x="5"></rect>
+<text class="rank" y="1.5em" fill-opacity="1">Rank</text>
+<text class="purerank" y="1.5em" fill-opacity="1">Rank in Group</text>
+<text class="teamname" y="1.5em" text-anchor="middle" fill-opacity="1">Team/League</text>
+<text class="rating" y="1.5em" text-anchor="end" fill-opacity="1">Rating</text>
+</svg>
+<svg id="header2" height="3em">
+    <title>Solid red/solid blue means certain win/loss; darker colours mean possibility of upset.</title>
+    <rect fill="ivory" class="barcontent" opacity="1" stroke="#444" height="3em" x="5" y="0" ></rect>
+    <text y="1em" x="5">Rating with respect to:</text><text class="teamname" y="1em" text-anchor="middle">X</text><text class="endnote" y="1em" text-anchor="end">points for each point scored.</text>
+<text class="wl" y="2.5em" text-anchor="middle">Red: certain win. Blue: certain loss.</text>
+</svg>
+</div>
+<img id="modetoggle" />
+<span id="markertoggle">
+<img class="markersize" id="small" src="smlicon.png" />
+<img class="markersize" id="medium" src="medicon.png" />
+<img class="markersize" id="large" src="largeicon.png" />
+</span>
+<span id="locatortoggle">LOCATOR</span><div id="locator"><svg></svg></div><div id="locator2"><svg></svg></div>
+<div id="controls">
+<div><span id="type"><span class="tooltip" id="rs">Rating Source:</span><select></select></span><span id="dates"><span class="tooltip" id="dt">Date:</span><select></select></span></span></div> <!--type is type of Rating (menu), controls contents of date (which is available dates) -->
+<div><span id="group"><span class="tooltip" id="rg">Rating Groups:</span><select></select></span> <span id="ateams">A Teams Only:<input type="checkbox" id="ATEAM" /></span></div>
+<div><span id="gender"><span class="tooltip" id="gt">"Gender" Types:</span></span><span id="menu"><span class="tooltip" id="cg">Color Grouping:</span><select></select></span></div> <!-- gender is gender selector, checkboxes; menu is colourscheme selector, menu-->
+<div><span class="tooltip" id="ct">Countries:</span></span>  <span id="cliques"><span class="tooltip" id="cl">Cliques:</span></span><span id="loadsave"><span class="tooltip" id="sv">Load/Save</span> <!-- <div id="ngb"></span> --> </div> <!-- mutually exclusive due to lack of syncing in our model for shared state -->
+<div id="adv"></div>
+<div>SRD Rank Rating Visualiser v2.0<br />
+This is a <a href="https://scottishrollerderby.wordpress.com">Scottish Roller Derby Blog</a> resource, powered by <a href="https://flattrackstats.com">Flat Track Stats</a>, and <a href="https://wftda.com">WFTDA.</a><br />
+Made with Natural Earth. Free vector and raster map data @ naturalearthdata.com.<br />
+Information on SRDRank is available <a href="http://aoanla.pythonanywhere.com/SRDRank.html">here</a>
+Next code release: Load/Save state; WebGL globe!<br />
+</div></div>
+<script src="srdrank-min-1_2.js">
+</script>
+</body>
+</html>

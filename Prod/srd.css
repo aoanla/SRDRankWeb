@@ -1,0 +1,40 @@
+
+            .title {
+                font-weight: bold;
+            }
+
+            #toplevel {
+                display: block;
+                max-width: 512px;
+                overflow: auto;
+                background-image: url("http://aoanla.pythonanywhere.com/SRDB-light.jpg");
+                background-size: contain;
+            }
+            .contain {
+                background-color: rgba(40,50,120,0.5);
+                color: #fff;
+                border: thin black solid;
+            }
+            .border {
+                border: thin black solid;
+            }
+            #current {
+                font-weight: bold;
+                text-decoration: underline;
+                text-align: center;
+            }
+            a {
+                color:#f7f7f7;
+            }
+            a:visited {
+                color:#efefef;
+            }
+            a.tp {
+                color: #111111;
+            }
+            a.tp:visited {
+                color: #222222;
+            }
+            body {
+
+            }
